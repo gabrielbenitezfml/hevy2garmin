@@ -176,6 +176,14 @@ describe("the profile and timing settings", () => {
     expect(s.profile.timezone).toBeUndefined();
   });
 
+  it("hands the merge no timing key the user did not set", async () => {
+    // An explicit undefined overwrites the engine's default when spread, and
+    // the merge then fails with "Invalid time value".
+    const s = await loadSyncSettings(fakeSql({ timing: { working_set_seconds: 60 } }));
+    expect(s.merge.timing).toEqual({ workingSetS: 60 });
+    expect(Object.keys((await loadSyncSettings(fakeSql())).merge.timing ?? {})).toEqual([]);
+  });
+
   it("is empty for a database with nothing saved", async () => {
     expect((await loadSyncSettings(fakeSql())).profile).toEqual({});
   });
