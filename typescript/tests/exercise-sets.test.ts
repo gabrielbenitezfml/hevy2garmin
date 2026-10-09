@@ -262,4 +262,16 @@ describe("set timing comes from the user's settings", () => {
     );
     expect(Math.round(p.exerciseSets[0].duration)).toBe(90);
   });
+  it("keeps the defaults for timing keys that are present but undefined", () => {
+    // The web app used to send every key, unset ones as undefined. Spread over
+    // the defaults, those made each duration NaN and the merge threw
+    // "Invalid time value".
+    const p = buildExerciseSetsPayload(w as never, 1, START, 25 + 75 + 40 + 120 + 40, undefined, {
+      workingSetS: undefined,
+      warmupSetS: undefined,
+      restSetsS: undefined,
+      restExercisesS: undefined,
+    });
+    expect(p.exerciseSets.map((s) => Math.round(s.duration))).toEqual([25, 75, 40, 120, 40]);
+  });
 });

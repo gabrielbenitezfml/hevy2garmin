@@ -145,13 +145,16 @@ export async function loadSyncSettings(sql: Sql): Promise<SyncSettings> {
       maxDriftMinutes: num(mergeCfg?.merge_max_drift_min, d.merge.maxDriftMinutes!),
       customMappings: Object.keys(customMappings).length ? customMappings : undefined,
       // The same four numbers the FIT uses, so a merged workout and an
-      // uploaded one lay their sets out the same way.
-      timing: {
-        workingSetS: profile.workingSetS,
-        warmupSetS: profile.warmupSetS,
-        restSetsS: profile.restSetsS,
-        restExercisesS: profile.restExercisesS,
-      },
+      // uploaded one lay their sets out the same way. Only the keys the user
+      // set: an explicit `undefined` would overwrite the engine's default when
+      // spread, turning every set duration into NaN and the merge into
+      // "Invalid time value".
+      timing: Object.fromEntries(
+        TIMING_KEYS.filter(([, engine]) => profile[engine] !== undefined).map(([, engine]) => [
+          engine,
+          profile[engine] as number,
+        ]),
+      ) as NonNullable<SyncSettings["merge"]["timing"]>,
     },
     hrFusion: bool(hrCfg?.enabled, d.hrFusion),
     descriptionEnabled: bool(mergeCfg?.description_enabled, d.descriptionEnabled),
